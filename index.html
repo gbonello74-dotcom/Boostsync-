@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>BoostSync System Module</title>
+
+<style>
+/* GLOBAL RESET */
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top, #4da3ff, #0b1b3a);
+  background-size: 200% 200%;
+  animation: bgShift 6s ease-in-out infinite;
+  color: white;
+  font-family: -apple-system, system-ui, sans-serif;
+  overflow: hidden;
+}
+
+/* Background animation */
+@keyframes bgShift {
+  0% { background-position: 50% 0%; }
+  50% { background-position: 50% 100%; }
+  100% { background-position: 50% 0%; }
+}
+
+/* Hidden class FIXED for iPad Safari */
+.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+}
+
+/* Center container */
+.container {
+  width: 100%;
+  max-width: 520px;
+  padding: 24px;
+  text-align: center;
+}
+
+/* iPadOS spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255,255,255,0.25);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px auto;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Titles */
+.title {
+  font-size: 26px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.stage-label {
+  opacity: 0.85;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+/* Progress bar */
+.progress-container {
+  width: 100%;
+  height: 14px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.25);
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #a8d4ff, #4da3ff);
+  transition: width 1s linear;
+}
+
+/* Log window */
+.logbox {
+  width: 100%;
+  height: 40vh;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  padding: 12px;
+  overflow: hidden;
+  font-family: monospace;
+  font-size: 13px;
+  text-align: left;
+  box-shadow: 0 0 12px rgba(0,0,0,0.3);
+}
+
+.logline {
+  opacity: 0.85;
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+
+/* Fake iPadOS update screen */
+.update-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.update-subtitle {
+  opacity: 0.85;
+  font-size: 15px;
+  margin-bottom: 16px;
+}
+
+/* CODE STORM SCREEN — FIXED */
+.code-screen {
+  position: fixed;
+  inset: 0;
+  background: black;
+  color: #00ff7f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+}
+
+.code-inner {
+  width: 100%;
+  max-width: 600px;
+  height: 80vh;
+  background: #000000;
+  border-radius: 8px;
+  padding: 12px;
+  box-sizing: border-box;
+  font-family: monospace;
+  font-size: 12px;
+  overflow: hidden;
+  border: 1px solid #00ff7f33;
+}
+
+.code-line {
+  white-space: nowrap;
+}
+
+.final-message {
+  text-align: center;
+  margin-top: 16px;
+  color: #ffffff;
+  font-family: -apple-system, system-ui, sans-serif;
+}
+</style>
+</head>
+
+<body>
+
+<!-- MAIN BOOSTSYNC MODULE -->
+<div id="mainModule" class="container">
+  <div class="spinner"></div>
+  <div class="title">BoostSync System Optimization</div>
+  <div class="stage-label" id="stageLabel">Initializing…</div>
+
+  <div class="progress-container">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <div class="logbox" id="logbox"></div>
+</div>
+
+<!-- FAKE iPadOS UPDATE SCREEN -->
+<div id="updateScreen" class="container hidden">
+  <div class="spinner"></div>
+  <div class="update-title">Preparing iPadOS Update…</div>
+  <div class="update-subtitle">Do not turn off or disconnect from power.</div>
+
+  <div class="progress-container">
+    <div class="progress-bar" id="updateProgress"></div>
+  </div>
+</div>
+
+<!-- BLACK CODE STORM SCREEN -->
+<div id="codeScreen" class="code-screen hidden">
+  <div>
+    <div class="code-inner" id="codeBox"></div>
+    <div class="final-message" id="finalMessage"></div>
+  </div>
+</div>
+
+<script>
+/* ===== MULTI-STAGE BOOSTSYNC ===== */
+const stageLabel = document.getElementById("stageLabel");
+const progressBar = document.getElementById("progressBar");
+const logbox = document.getElementById("logbox");
+
+const stages = [
+  { label: "Stage 1: System Scan", duration: 3000 },
+  { label: "Stage 2: Resource Optimization", duration: 4000 },
+  { label: "Stage 3: Framework Refresh", duration: 3500 },
+  { label: "Stage 4: Finalizing System Refresh", duration: 3000 }
+];
+
+let currentStage = 0;
+
+function runStage() {
+  const stage = stages[currentStage];
+  stageLabel.textContent = stage.label;
+
+  progressBar.style.width = "0%";
+  setTimeout(() => progressBar.style.width = "100%", 50);
+
+  setTimeout(() => {
+    currentStage++;
+    if (currentStage < stages.length) {
+      runStage();
+    } else {
+      showUpdateScreen();
+    }
+  }, stage.duration);
+}
+
+runStage();
+
+/* ===== LOG STREAM ===== */
+function addLog() {
+  const logs = [
+    "Initializing BoostSync kernel module…",
+    "Scanning system cache…",
+    "Rebuilding performance index…",
+    "Optimizing memory blocks…",
+    "Refreshing iPadOS background services…",
+    "Checking iCloud sync integrity…",
+    "Cleaning unused system artifacts…",
+    "Reallocating resource threads…",
+    "Updating BoostSync runtime…",
+    "Verifying secure framework…",
+    "Applying optimization patch…",
+    "Finalizing system refresh…"
+  ];
+
+  const line = document.createElement("div");
+  line.className = "logline";
+  line.textContent = logs[Math.floor(Math.random() * logs.length)];
+
+  logbox.appendChild(line);
+  logbox.scrollTop = logbox.scrollHeight;
+
+  if (logbox.children.length > 50) {
+    logbox.removeChild(logbox.firstChild);
+  }
+}
+
+setInterval(addLog, 300);
+
+/* ===== FAKE UPDATE SCREEN ===== */
+const mainModule = document.getElementById("mainModule");
+const updateScreen = document.getElementById("updateScreen");
+const updateProgress = document.getElementById("updateProgress");
+
+function showUpdateScreen() {
+  mainModule.classList.add("hidden");
+
+  requestAnimationFrame(() => {
+    updateScreen.classList.remove("hidden");
+  });
+
+  updateProgress.style.width = "0%";
+  setTimeout(() => updateProgress.style.width = "100%", 50);
+
+  setTimeout(showCodeScreen, 5000);
+}
+
+/* ===== CODE STORM ===== */
+const codeScreen = document.getElementById("codeScreen");
+const codeBox = document.getElementById("codeBox");
+const finalMessage = document.getElementById("finalMessage");
+
+function showCodeScreen() {
+  updateScreen.classList.add("hidden");
+
+  requestAnimationFrame(() => {
+    codeScreen.classList.remove("hidden");
+  });
+
+  let lines = 0;
+  const maxLines = 200;
+
+  const interval = setInterval(() => {
+    const line = document.createElement("div");
+    line.className = "code-line";
+    line.textContent =
+      "[BoostSync] 0x" +
+      Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0") +
+      "  ::  process=" +
+      Math.floor(Math.random() * 9999) +
+      "  status=OK";
+
+    codeBox.appendChild(line);
+    codeBox.scrollTop = codeBox.scrollHeight;
+
+    lines++;
+    if (lines > maxLines) {
+      clearInterval(interval);
+      finalMessage.textContent = "BoostSync Complete. System state normalized.";
+    }
+  }, 30);
+}
+</script>
+
+</body>
+</html>
